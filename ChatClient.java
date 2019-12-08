@@ -11,10 +11,19 @@ import javax.swing.*;
  */
 public class ChatClient {
 
+    private static final String servAck = "OK";
+    private static final String servNack = "ERROR";
+    private static final String userMessage = "MESSAGE";
+    private static final String privMessage = "PRIVATE";
+    private static final String nickChange = "NEWNICK";
+    private static final String joinRoom = "JOINED";
+    private static final String leavRoom = "LEFT";
+    private static final String servLeave = "BYE";
+
     DataOutputStream output;
     BufferedReader input;
     Socket socket;
-    String serverMessage;
+    String serverMessage = "";
     String nickName;
     String channel;
 
@@ -35,15 +44,20 @@ public class ChatClient {
         if(isChat == 0) {
             chatArea.append(message +"\n");
         } else if(isChat == 1) {
-            chatArea.append("["+time+"] "+message+"\n");
+            chatArea.append("["+time+"]: "+message+"\n");
         }
 
     }
 
-    // Método a usar para acrescentar uma string à caixa de texto
-    // * NÃO MODIFICAR *
-    public void printMessage(final String message){
-        chatArea.append(message);
+    public void sendPrivMessage(final String sender, final String message, final String receiver){
+        String time = new SimpleDateFormat("HH.mm.ss").format(new Date());
+        chatArea.append("["+time+"] <Private @"+receiver+"> "+sender+": "+message+"\n");
+    }
+
+    public void sendMsgtoChannel(final String sender, final String message){
+        String time = new SimpleDateFormat("HH.mm.ss").format(new Date());
+        chatArea.append("["+time+"] [@"+channel+"] "+sender+": "+message+"\n");
+
     }
 
     //construtor
@@ -87,7 +101,7 @@ public class ChatClient {
             isConnected =  true;
 
         } catch (IOException e) {
-            System.out.println("counldn t connect");
+            System.out.println("Connection Error");
         } finally {
             if (isConnected) {
                 
@@ -99,7 +113,7 @@ public class ChatClient {
 				sendMessage("/priv $nickname to send a private message to $nickname.", 0);
 				sendMessage("/bye to close the connection to the current server.", 0);
             }
-            
+            else sendMessage("Could not establish connection", 0);
         }
     }
 
@@ -113,9 +127,140 @@ public class ChatClient {
         output.write(msg);
     }
 
+    public void servStateMessage(String servCmd){
+        String clientCmd[] = serverMessage.split(" ");
+        
+        switch(clientCmd[0]){
+            case "/join": 
+                if(servCmd.equals(servAck)){
+                    String okMsg ="Joining room @"+channel+".";
+                    sendMessage(okMsg, 1);
+                }
+                else if(servCmd.equals(servNack)){
+                    if(nickName == null){
+                        String nullNick = "Please define your nickname before joining a room.";
+                        sendMessage(nullNick, 1);
+                    }
+                    else{
+                        String joinError = "Error joining room, please try again.";
+                        sendMessage(joinError, 1);
+                    }
+                }
+                break;
+            case "/leave":
+                if(servCmd.equals(servAck)){
+                    String leavRoom = "You left the @"+channel+" room.";
+                    sendMessage(leavRoom, 1);
+                    channel = "";
+                }
+                else if(servCmd.equals(servNack)){
+                    if(channel == null){
+                        String noRoom = "Please join a room before leaving it";
+                        sendMessage(noRoom, 1);
+                    }
+                    else{
+                        String leavError = "Error leaving room, please try again.";
+                        sendMessage(leavError, 1);
+                    }
+                }
+                break;
+            case "/nick":
+                if(servCmd.equals(servAck)){
+                    String nickSet = "Nickname set to '"+clientCmd[1]+"'.";
+                    sendMessage(nickSet, 1);
+                }
+                else if(servCmd.equals(servNack)){
+                    if(clientCmd[1] == null || clientCmd[1] == "" || clientCmd[1] == " "){
+                        String noNick = "Please input a valid nickname.";
+                        sendMessage(noNick, 1);
+                    }
+                    else{
+                        String badNick = "Nickname already taken, please choose another.";
+                        sendMessage(badNick, 1);
+                    }
+                }
+                break;
+            case "/priv":
+                if(servCmd.equals(servAck)){
+                    String receipt = clientCmd[1];
+                    String prvtMsg="";
+                    for(int i=2; i<clientCmd.length; i++)
+                        prvtMsg += " "+clientCmd[i];
+                    sendPrivMessage(nickName, prvtMsg, receipt);
+                }
+                else if(servCmd.equals(servNack)){
+                    String noRcvr = "Unable to send private message, please try again later.";
+                    sendMessage(noRcvr, 1);
+                }
+                break;
+            default:
+                if(servCmd.equals(servNack)){
+                    String failCmd = clientCmd[0];
+                    if(failCmd.charAt(0) =='/' && failCmd.charAt(1) != '/'){
+                        String cmdError = "Invalid or mistyped command, please try again.";
+                        sendMessage(cmdError, 1);
+                        break;
+                    }
+                    else if(nickName == null){
+                        String nullNick = "A nickname must be set before having premission to do that.";
+                        sendMessage(nullNick, 1);
+                    }
+                    else if(channel == null){
+                        String nullRoom = "You need to be inside a chatroom before sending any messages";
+                        sendMessage(nullRoom, 1);
+                    }
+                }
+                break;
+        }
+    }
     // Método principal do objecto
     public void run() throws IOException{
-        // PREENCHER AQUI
+        while(socket.isClosed() == false){
+            String servInfo = input.readLine();
+
+            if(servInfo.equals("") == false){
+                String servMessg[] = servInfo.split(" ");
+                String userMessg ="";
+
+                switch(servMessg[0]){
+                    case joinRoom:
+                        String enterRoom = "User '"+servMessg[1]+"' has joined.";
+                        sendMessage(enterRoom, 1);
+                        break;
+                    case leavRoom:
+                        String lftRoom = "User '"+servMessg[1]+"' has left.";
+                        sendMessage(lftRoom, 1);
+                        break;
+                    case privMessage:
+                        String receiver = servMessg[1];
+                        for(int i=2; i<servMessg.length;i++)
+                            userMessg += " "+servMessg[i];
+                        sendPrivMessage(receiver, userMessg, nickName);
+                        break;
+                    case nickChange:
+                        String diffNick = "User'"+servMessg[1]+"' changed nickname to: '"+servMessg[2]+"'.";
+                        sendMessage(diffNick, 1);
+                        break;
+                    case servAck:
+                        servStateMessage(servAck);
+                        break;
+                    case servNack:
+                        servStateMessage(servNack);
+                        break;
+                    case userMessage:
+                        for(int i=2; i<servMessg.length;i++)
+                            userMessg += " "+servMessg[i];
+                        sendMessage(userMessg, 1);
+                        break;
+                    case servLeave:
+                        String servOFF = "You have been disconnected.";
+                        sendMessage(servOFF, 1);
+                        socket.close();
+                        frame.dispose();
+                        break;
+                }
+            }
+        }
     }
 
     // Instancia o ChatClient e arranca-o invocando o seu método run()
