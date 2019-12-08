@@ -133,6 +133,7 @@ public class ChatClient {
         switch(clientCmd[0]){
             case "/join": 
                 if(servCmd.equals(servAck)){
+                    channel = clientCmd[1];
                     String okMsg ="Joining room @"+channel+".";
                     sendMessage(okMsg, 1);
                 }
