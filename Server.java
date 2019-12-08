@@ -218,7 +218,6 @@ public class Server {
         // Decode and print the message to stdout
         String message2 = decoder.decode(buffer).toString();
         if (message2.contains("\n")) {
-
             System.out.print(cliente.getNick() +" sent: "+ message2);
             // TODO precessar a menssagem
         }
@@ -240,7 +239,7 @@ public class Server {
 
                     case "/nick":
                         if (command) {
-                            if(client.getNick() == "UNKNOWN")
+                            if(client.getNick() == "")
                             client.setNick(msg[1]);
                             client.getSc().write(encoder.encode(CharBuffer.wrap("OK\n")));
                             //TODO broadCast method and check if nick is available
