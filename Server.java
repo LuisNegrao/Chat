@@ -1,15 +1,10 @@
 import java.io.*;
 import java.net.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.nio.*;
+import java.nio.channels.*;
+import java.nio.charset.*;
+import java.util.*;
+
 
 class Client {
 
@@ -18,13 +13,13 @@ class Client {
     private String status;
     private String room;
 
-    public Client(SocketChannel sChannel) {
+	public Client(SocketChannel sc){
+		this.sc = sc;
+		this.nick="UNKNOWN";
+		this.status = "init";
+		this.room = "";
+	}
 
-        this.sc = sChannel;
-        this.nick = null;
-        this.room = "lobby";
-        this.status = "init";
-    }
 
 
     public SocketChannel getSc() {
@@ -102,12 +97,12 @@ public class Server {
     private static CharsetDecoder decoder = charset.newDecoder();
     private static CharsetEncoder encoder = charset.newEncoder();
     private static String message = "";
-    static LinkedList<Client> cli1ents = new LinkedList<>();
+    static LinkedList<Client> clients = new LinkedList<>();
     private static LinkedList<Room> rooms = new LinkedList<>();
 
     public static void main(String[] args) {
 
-        int port = args[0];
+        int port = Integer.parseInt(args[0]);
 
         try {
             
@@ -116,7 +111,7 @@ public class Server {
 
             ServerSocket serverSocket = serverSocketChannel.socket();
             InetSocketAddress iSocketAddress = new InetSocketAddress(port);
-            socket.bind(iSocketAdress);
+            serverSocket.bind(iSocketAddress);
 
             Selector selector = Selector.open();
 
@@ -138,8 +133,9 @@ public class Server {
                     SelectionKey key = iterator.next();
 
                     if ((key.readyOps() & SelectionKey.OP_ACCEPT) == SelectionKey.OP_ACCEPT) {
-                        
+
                         Socket socket = serverSocket.accept();
+                        System.out.println("New Connection");
 
                         SocketChannel sc = socket.getChannel();
                         sc.configureBlocking(false);
@@ -149,7 +145,7 @@ public class Server {
                     } else if ((key.readyOps() & SelectionKey.OP_READ) == SelectionKey.OP_READ) {
 
                         SocketChannel sc = null;
-
+                        System.out.println("boas");
                         try {
                             
                             sc = (SocketChannel)key.channel();
@@ -203,12 +199,60 @@ public class Server {
         if (buffer.limit()==0) {
           return false;
         }
+
+        boolean isnew = true;
+        Client cliente = new Client(sc);
+
+        for (Client client : clients) {
+            if(client.getSc() == sc) {
+                isnew = false;
+            }
+        }
+
+        if (isnew) {
+            clients.add(cliente);
+            System.out.println("Novo Cliente: " + clients.size() + " Clientes");
+        }
+
     
         // Decode and print the message to stdout
         String message2 = decoder.decode(buffer).toString();
-        System.out.print( message2 );
+        if (message2.contains("\n")) {
+
+            System.out.print(cliente.getNick() +" sent: "+ message2);
+            // TODO precessar a menssagem
+        }
     
         return true;
+    }
+
+    private static void messageProcessing (Client client, String message) {
+
+        String[] msgs = message.split("\n");
+
+        for (String mesg : msg) {
+            
+            String[] msg = mesg.split(" ");
+            boolean command = (msg[0].charAt(0) == "/" && msg[0].charAt(1) == "/");
+
+            if(command) {
+                switch (msg[0]) {
+
+                    case "/nick":
+                        if (command) {
+                            if(client.getNick() == "UNKNOWN")
+                            client.setNick(msg[1]);
+                            client.getSc().write(encoder.encode(CharBuffer.wrap("OK\n")));    
+                        }
+                        break;
+                
+                    default:
+                        break;
+                }
+            }
+
+        }
+
     }
     
 }
