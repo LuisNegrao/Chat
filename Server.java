@@ -242,8 +242,19 @@ public class Server {
                         if (command) {
                             if(client.getNick() == "UNKNOWN")
                             client.setNick(msg[1]);
-                            client.getSc().write(encoder.encode(CharBuffer.wrap("OK\n")));    
+                            client.getSc().write(encoder.encode(CharBuffer.wrap("OK\n")));
+                            //TODO broadCast method and check if nick is available
+                        } else {
+                            client.getSc().write(encoder.encode(CharBuffer.wrap("ERROR\n")));
                         }
+                        break;
+                    case "/join":
+                        if (command) {
+                            if (!client.getStatus().equals("init")) {
+                                Room room = checkRooms();
+                            }
+                        }
+                        
                         break;
                 
                     default:
