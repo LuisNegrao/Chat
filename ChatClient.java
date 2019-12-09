@@ -132,7 +132,6 @@ public class ChatClient {
     }
 
     public void servStateMessage(String servCmd){
-        System.out.println(servCmd);
         String clientCmd[] = serverMessage.split(" ");
         
         switch(clientCmd[0]){
@@ -266,7 +265,7 @@ public class ChatClient {
                         break;
                 }
             }
-            System.out.println("Client sent: "+servInfo);
+            System.out.println("Client received: "+servInfo);
         }
     }
 
