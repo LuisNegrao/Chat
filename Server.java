@@ -155,7 +155,6 @@ public class Server {
                     } else if ((key.readyOps() & SelectionKey.OP_READ) == SelectionKey.OP_READ) {
 
                         SocketChannel sc = null;
-                        System.out.println("boas");
                         try {
                             
                             sc = (SocketChannel)key.channel();
@@ -240,24 +239,22 @@ public class Server {
             
             String[] msg = mesg.split(" ");
             boolean command = (msg[0].charAt(0) == '/' && msg[0].charAt(1) != '/');
-            System.out.println(client.getNick());
             if(command) {
                 switch (msg[0]) {
 
                     case "/nick":
-                        //if (command) {
+                        if (getClient(msg[1]) == null) {
                             //TODO check is name is up for grabs
                             System.out.println(msg[1]);
                             client.setNick(msg[1]);
                             client.getSc().write(encoder.encode(CharBuffer.wrap("OK\n")));
                             //TODO broadCast method and check if nick is available
                             broadCast(client, "NEWNICK " + client.getNick());
-                        // } else {
-                        //     client.getSc().write(encoder.encode(CharBuffer.wrap("ERROR\n")));
-                        // }
+                        } else {
+                            client.getSc().write(encoder.encode(CharBuffer.wrap("ERROR\n")));
+                        }
                         break;
                     case "/join":
-                        if (command) {
                             if (!client.getStatus().equals("init")) {
                                 Room room = checkRooms(msg[1]);
                                 if(room == null) {
@@ -270,39 +267,44 @@ public class Server {
                                     broadCast(client, "LEFT " + client.getNick());
                                     checkRooms(client.getRoom()).removeClient(client);
                                 }
+                                room.addClients(client);
+						        client.getSc().write(encoder.encode(CharBuffer.wrap("OK\n")));
+                                broadCast(client, "JOINED " + client.getNick());
+                            } else {
                                 client.getSc().write(encoder.encode(CharBuffer.wrap("ERROR\n")));
                             }
-                        }
+        
                         break;
                     case "/leave":
                         if (!client.getRoom().equals("")) {
-                            Room room = checkRooms(msg[1]);
+                            Room room = checkRooms(client.getRoom());
                             if (room == null) {
                                 client.getSc().write(encoder.encode(CharBuffer.wrap("ERROR\n")));
                             } else {
                                 client.getSc().write(encoder.encode(CharBuffer.wrap("OK\n")));
+                                broadCast(client, "LEFT " + client.getNick());
                                 room.removeClient(client);
                                 //TODO Broadcast leave msg
-                                broadCast(client, "LEFT " + client.getNick());
                             }
                         } else {
                             client.getSc().write(encoder.encode(CharBuffer.wrap("ERROR\n")));
                         }
                         break;
                     case "/bye":
-                        Room room = checkRooms(msg[1]);
+                        Room room = checkRooms(client.getRoom());
                         if (room != null) {
                             //TODO broadcast leave msg
                             broadCast(client, "LEFT " + client.getNick());
                             room.removeClient(client);
                         }
-                        client.getSc().write(encoder.encode(CharBuffer.wrap("/Bye\n")));
+                        client.getSc().write(encoder.encode(CharBuffer.wrap("BYE\n")));
                         clients.remove(client);
                         System.out.println("Closed connection from: " + client.getSc().socket());
                         client.getSc().close();
                         break;
                     case "/priv":
                         Client reciver = getClient(msg[1]); //TODO getClient method
+                        System.out.println(msg[1]);
                         if(reciver == null) {
                             client.getSc().write(encoder.encode(CharBuffer.wrap("ERROR\n")));
                         } else {
@@ -313,7 +315,7 @@ public class Server {
                             }
                             privMessage += msg[msg.length - 1] +"\n";
                             
-                            client.getSc().write(encoder.encode(CharBuffer.wrap("PRIVATE "+ client.getNick() + " " + privMessage)));
+                            reciver.getSc().write(encoder.encode(CharBuffer.wrap("PRIVATE "+ client.getNick() + " " + privMessage)));
                         }
                         break;
                     default:
@@ -341,9 +343,10 @@ public class Server {
         Room room = checkRooms(client.getRoom());
         for (Client client2 : room.getClients()) {
             if ((message.startsWith("MESSAGE") && client2 == client) || client2 != client)  {
-                client.getSc().write(encoder.encode(CharBuffer.wrap(message+"\n")));
+                client2.getSc().write(encoder.encode(CharBuffer.wrap(message+"\n")));
             }
         }
+
 
     }
 
@@ -354,7 +357,7 @@ public class Server {
         }
 
         for (Room room : rooms) {
-            if (room.getName() == name) {
+            if (room.getName().equals(name)) {
                 return room;
             }
         }
@@ -364,7 +367,7 @@ public class Server {
 
     private static Client getClient(String name) {
         for (Client client : clients) {
-            if(client.getNick().equals("name"))
+            if(client.getNick().equals(name))
                 return client;
         }
         return null;
@@ -383,5 +386,15 @@ public class Server {
         }
         return null;
     }
+
+    // private static Client checkNick(String name) {
+
+    //     for (Client client : clients) {
+    //         if(client.getNick() == name){
+    //             return client;
+    //         }
+    //     }
+    //     return null;
+    // }
 
 }
