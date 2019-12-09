@@ -49,9 +49,9 @@ public class ChatClient {
 
     }
 
-    public void sendPrivMessage(final String sender, final String message, final String receiver){
+    public void sendPrivMessage(final String sender, final String message){
         String time = new SimpleDateFormat("HH.mm.ss").format(new Date());
-        chatArea.append("["+time+"] <Private @"+receiver+"> "+sender+": "+message+"\n");
+        chatArea.append("["+time+"] <Private> "+sender+": "+message+"\n");
     }
 
     public void sendMsgtoChannel(final String sender, final String message){
@@ -187,7 +187,7 @@ public class ChatClient {
                     String prvtMsg="";
                     for(int i=2; i<clientCmd.length; i++)
                         prvtMsg += " "+clientCmd[i];
-                    sendPrivMessage(nickName, prvtMsg, receipt);
+                    sendPrivMessage(nickName, prvtMsg);
                 }
                 else if(servCmd.equals(servNack)){
                     String noRcvr = "Unable to send private message, please try again later.";
@@ -236,7 +236,7 @@ public class ChatClient {
                         String receiver = servMessg[1];
                         for(int i=2; i<servMessg.length;i++)
                             userMessg += " "+servMessg[i];
-                        sendPrivMessage(receiver, userMessg, nickName);
+                        sendPrivMessage(receiver, userMessg);
                         break;
                     case nickChange:
                         String diffNick = "User'"+servMessg[1]+"' changed nickname to: '"+servMessg[2]+"'.";
