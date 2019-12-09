@@ -187,7 +187,7 @@ public class ChatClient {
                     String prvtMsg="";
                     for(int i=2; i<clientCmd.length; i++)
                         prvtMsg += " "+clientCmd[i];
-                    sendPrivMessage(nickName, prvtMsg);
+                    sendPrivMessage(receipt, prvtMsg);
                 }
                 else if(servCmd.equals(servNack)){
                     String noRcvr = "Unable to send private message, please try again later.";
