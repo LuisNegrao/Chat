@@ -304,7 +304,7 @@ public class Server {
                         break;
                     case "/priv":
                         Client reciver = getClient(msg[1]); //TODO getClient method
-                        System.out.println(msg[1]);
+                        
                         if(reciver == null) {
                             client.getSc().write(encoder.encode(CharBuffer.wrap("ERROR\n")));
                         } else {
