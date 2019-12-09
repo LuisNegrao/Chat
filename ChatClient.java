@@ -265,6 +265,7 @@ public class ChatClient {
                         break;
                 }
             }
+            System.out.println("Client sent: "+servInfo);
         }
     }
 

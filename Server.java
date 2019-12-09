@@ -326,7 +326,7 @@ public class Server {
                 if (client.getRoom() == "") {
                     client.getSc().write(encoder.encode(CharBuffer.wrap("ERROR\n")));
                 } else {
-                    //TODO broadcast MESSAGE message
+                    //TODO verify mesg.substring 
                     broadCast(client, "MESSAGE " + client.getNick() + " " + mesg.substring(1));
                 }
             }
