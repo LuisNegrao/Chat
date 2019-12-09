@@ -132,6 +132,7 @@ public class ChatClient {
     }
 
     public void servStateMessage(String servCmd){
+        System.out.println(servCmd);
         String clientCmd[] = serverMessage.split(" ");
         
         switch(clientCmd[0]){
