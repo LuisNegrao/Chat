@@ -83,7 +83,7 @@ class Room {
         //client.setStatus("outside");
         clients.remove(client);
         if(this.clients.size() == 0) {
-            Server.deleteRoom(this);
+            ChatServer.deleteRoom(this);
         }
     }
 
@@ -100,7 +100,7 @@ class Room {
 
 
 
-public class Server {
+public class ChatServer {
 
     private static ByteBuffer buffer = ByteBuffer.allocate(16384);
 
