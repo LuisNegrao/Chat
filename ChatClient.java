@@ -113,12 +113,6 @@ public class ChatClient {
             if (isConnected) {
                 
                 frame.setTitle("Chat at " + server + " " + port);
-                sendMessage("Available Commands:", 0);
-				sendMessage("/nick $nickname to set/change your nickname.", 0);
-				sendMessage("/join $room to join/change your conversation room.", 0);
-				sendMessage("/leave to leave your current coversation room.", 0);
-				sendMessage("/priv $nickname to send a private message to $nickname.", 0);
-				sendMessage("/bye to close the connection to the current server.", 0);
             }
             else sendMessage("Could not establish connection", 0);
         }
