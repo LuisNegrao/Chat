@@ -223,6 +223,7 @@ public class ChatClient {
         while(socket.isClosed() == false){
             String servInfo = input.readLine();
 
+
             if(servInfo.equals("") == false){
                 String servMessg[] = servInfo.split(" ");
                 String userMessg ="";

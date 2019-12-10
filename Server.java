@@ -80,6 +80,7 @@ class Room {
     //DONE remove room if size == 0
     public void removeClient(Client client) {
         client.setRoom(null);
+        client.setStatus("outside");
         clients.remove(client);
         if(this.clients.size() == 0) {
             Server.deleteRoom(this);
@@ -245,11 +246,12 @@ public class Server {
                     case "/nick":
                         if (getClient(msg[1]) == null) {
                             //TODO check is name is up for grabs
-                            System.out.println(msg[1]);
+                            //System.out.println(msg[1]);
+                            String oldNic =  client.getNick();
                             client.setNick(msg[1]);
                             client.getSc().write(encoder.encode(CharBuffer.wrap("OK\n")));
                             //TODO broadCast method and check if nick is available
-                            broadCast(client, "NEWNICK " + client.getNick());
+                            broadCast(client, "NEWNICK " + oldNic +" "+ client.getNick());
                         } else {
                             client.getSc().write(encoder.encode(CharBuffer.wrap("ERROR\n")));
                         }
@@ -264,8 +266,9 @@ public class Server {
                                 }
                                 if(!client.getRoom().equals("")) {
                                     //TODO broadcast msg that left room to join another
-                                    broadCast(client, "LEFT " + client.getNick());
                                     checkRooms(client.getRoom()).removeClient(client);
+                                    broadCast(client, "LEFT " + client.getNick());
+                                    
                                 }
                                 room.addClients(client);
 						        client.getSc().write(encoder.encode(CharBuffer.wrap("OK\n")));
