@@ -44,17 +44,20 @@ public class ChatClient {
         if(isChat == 0) {
             chatArea.append(message +"\n");
         } else if(isChat == 1) {
-            chatArea.append("["+time+"]: "+message+"\n");
+           chatArea.append("["+time+"]:"+message+"\n");
         }
 
     }
 
-    public void sendPrivMessage(final String sender, final String message, int flag){
+    public void sendChatMessage(final String sender, final String message, String flag){
         String time = new SimpleDateFormat("HH.mm.ss").format(new Date());
-        if(flag == 0)
-            chatArea.append("["+time+"] <Private> to "+sender+": "+message+"\n");
-        else if(flag == 1)
-            chatArea.append("["+time+"] <Private> from "+sender+": "+message+"\n");
+        if(flag.equals("sender"))
+            chatArea.append("["+time+"] <Private> to "+sender+":"+message+"\n");
+        else if(flag.equals("receiver"))
+            chatArea.append("["+time+"] <Private> from "+sender+":"+message+"\n");
+        else if(flag.equals("normal"))
+            chatArea.append("["+time+"] "+sender+":"+message+"\n");
+            
 
     }
 
@@ -191,7 +194,7 @@ public class ChatClient {
                     String prvtMsg="";
                     for(int i=2; i<clientCmd.length; i++)
                         prvtMsg += " "+clientCmd[i];
-                    sendPrivMessage(receipt, prvtMsg, 0);
+                    sendChatMessage(receipt, prvtMsg, "sender");
                 }
                 else if(servCmd.equals(servNack)){
                     String noRcvr = "Unable to send private message, please try again later.";
@@ -241,7 +244,7 @@ public class ChatClient {
                         String receiver = servMessg[1];
                         for(int i=2; i<servMessg.length;i++)
                             userMessg += " "+servMessg[i];
-                        sendPrivMessage(receiver, userMessg, 1);
+                        sendChatMessage(receiver, userMessg, "receiver");
                         break;
                     case nickChange:
                         String diffNick = "User'"+servMessg[1]+"' changed nickname to: '"+servMessg[2]+"'.";
@@ -254,9 +257,10 @@ public class ChatClient {
                         servStateMessage(servNack);
                         break;
                     case userMessage:
+                        String sender = servMessg[1];
                         for(int i=2; i<servMessg.length;i++)
                             userMessg += " "+servMessg[i];
-                        sendMessage(userMessg, 1);
+                        sendChatMessage(sender,userMessg, "normal");
                         break;
                     case servLeave:
                         String servOFF = "You have been disconnected.";

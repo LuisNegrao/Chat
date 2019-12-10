@@ -273,11 +273,13 @@ public class Server {
                                 room.addClients(client);
 						        client.getSc().write(encoder.encode(CharBuffer.wrap("OK\n")));
                                 broadCast(client, "JOINED " + client.getNick());
-                            } else {
+                            } 
+                            else {
                                 client.getSc().write(encoder.encode(CharBuffer.wrap("ERROR\n")));
                             }
         
                         break;
+                        //TODO verify leave problem
                     case "/leave":
                         if (!client.getRoom().equals("")) {
                             Room room = checkRooms(client.getRoom());
