@@ -79,8 +79,8 @@ class Room {
 
     //DONE remove room if size == 0
     public void removeClient(Client client) {
-        client.setRoom(null);
-        client.setStatus("outside");
+        client.setRoom("");
+        //client.setStatus("outside");
         clients.remove(client);
         if(this.clients.size() == 0) {
             Server.deleteRoom(this);
@@ -316,7 +316,7 @@ public class Server {
                             for(int i = 2; i < msg.length-1; i++) {
                                 privMessage += (msg[i] + " ");
                             }
-                            privMessage += msg[msg.length - 1] +"\n";
+                            privMessage += msg[msg.length - 1];
                             
                             reciver.getSc().write(encoder.encode(CharBuffer.wrap("PRIVATE "+ client.getNick() + " " + privMessage)));
                         }
@@ -329,8 +329,13 @@ public class Server {
                 if (client.getRoom() == "") {
                     client.getSc().write(encoder.encode(CharBuffer.wrap("ERROR\n")));
                 } else {
-                    //TODO verify mesg.substring 
-                    broadCast(client, "MESSAGE " + client.getNick() + " " + mesg.substring(1));
+                   
+                    String regMessage = "";
+                    for(int i = 2; i < msg.length-1; i++) {
+                        regMessage += (msg[i] + " ");
+                    }
+                    regMessage += msg[msg.length - 1];
+                    broadCast(client, "MESSAGE " + client.getNick() + " " + regMessage);
                 }
             }
 
