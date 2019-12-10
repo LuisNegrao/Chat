@@ -266,8 +266,8 @@ public class Server {
                                 }
                                 if(!client.getRoom().equals("")) {
                                     //TODO broadcast msg that left room to join another
-                                    checkRooms(client.getRoom()).removeClient(client);
                                     broadCast(client, "LEFT " + client.getNick());
+                                    checkRooms(client.getRoom()).removeClient(client);
                                     
                                 }
                                 room.addClients(client);
@@ -318,7 +318,7 @@ public class Server {
                             for(int i = 2; i < msg.length-1; i++) {
                                 privMessage += (msg[i] + " ");
                             }
-                            privMessage += msg[msg.length - 1];
+                            privMessage += msg[msg.length - 1] + "\n";
                             
                             reciver.getSc().write(encoder.encode(CharBuffer.wrap("PRIVATE "+ client.getNick() + " " + privMessage)));
                         }
@@ -333,10 +333,10 @@ public class Server {
                 } else {
                    
                     String regMessage = "";
-                    for(int i = 2; i < msg.length-1; i++) {
+                    for(int i = 0; i < msg.length-1; i++) {
                         regMessage += (msg[i] + " ");
                     }
-                    regMessage += msg[msg.length - 1];
+                    regMessage += msg[msg.length - 1] + "\n";
                     broadCast(client, "MESSAGE " + client.getNick() + " " + regMessage);
                 }
             }
